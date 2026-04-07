@@ -6,7 +6,7 @@ from typing import Dict, Any
 app = FastAPI(
     title="Incident Triage Environment",
     version="1.0.0",
-    description="SRE Simulator for server incident response",
+    description="SRE Simulator",
     docs_url="/docs",
     openapi_url="/openapi.json"
 )
@@ -14,24 +14,19 @@ app = FastAPI(
 class HealthResponse(BaseModel):
     status: str = "healthy"
 
-class MetadataResponse(BaseModel):
-    name: str = "incident_triage"
-    description: str = "SRE cascading failure simulation"
-
-
 @app.get("/health")
 async def health():
     return HealthResponse()
 
 @app.get("/metadata")
 async def metadata():
-    return MetadataResponse()
+    return {"name": "incident_triage", "description": "SRE cascading failure simulation"}
 
 @app.get("/schema")
 async def get_schema():
     return {
         "action": {"type": "object", "properties": {"command": {"type": "string"}, "args": {"type": "string"}}},
-        "observation": {"type": "object", "properties": {"disk_usage_percent": {"type": "number"}, "services_status": {"type": "string"}}},
+        "observation": {"type": "object", "properties": {"disk_usage_percent": {"type": "number"}}},
         "state": {"type": "object", "properties": {"step_count": {"type": "integer"}}}
     }
 
@@ -39,31 +34,17 @@ async def get_schema():
 async def reset():
     return {"status": "success", "message": "Environment reset"}
 
-
 @app.post("/step")
 async def step(action: Dict[str, Any]):
-    """Required for 'simulation' mode."""
-    return {
-        "observation": {"disk_usage_percent": 45.0, "services_status": "normal"},
-        "reward": 0.0,
-        "done": False,
-        "info": {}
-    }
+    return {"observation": {"disk_usage_percent": 45.0}, "reward": 0.0, "done": False, "info": {}}
 
 @app.get("/state")
 async def get_state():
-    """Required for 'simulation' mode."""
     return {"step_count": 0, "status": "active"}
-
-# --------------------------------------------------
 
 @app.post("/mcp")
 async def mcp_endpoint(payload: Dict[str, Any]):
     return {"jsonrpc": "2.0", "result": "ready", "id": payload.get("id", 1)}
-
-@app.get("/")
-async def root():
-    return {"status": "online", "message": "OpenEnv Server is Running"}
 
 def main():
     uvicorn.run("server.app:app", host="0.0.0.0", port=7860, reload=False)
