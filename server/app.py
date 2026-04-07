@@ -6,13 +6,19 @@ from typing import Dict, Any
 app = FastAPI(
     title="Incident Triage Environment",
     version="1.0.0",
-    description="SRE Simulator",
+    description="SRE Simulator for server incident response",
     docs_url="/docs",
     openapi_url="/openapi.json"
 )
 
+# --- MODELS ---
 class HealthResponse(BaseModel):
     status: str = "healthy"
+
+# --- ENDPOINTS ---
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "API is running", "version": "1.0.0"}
 
 @app.get("/health")
 async def health():
@@ -26,7 +32,7 @@ async def metadata():
 async def get_schema():
     return {
         "action": {"type": "object", "properties": {"command": {"type": "string"}, "args": {"type": "string"}}},
-        "observation": {"type": "object", "properties": {"disk_usage_percent": {"type": "number"}}},
+        "observation": {"type": "object", "properties": {"disk_usage_percent": {"type": "number"}, "services_status": {"type": "string"}}},
         "state": {"type": "object", "properties": {"step_count": {"type": "integer"}}}
     }
 
@@ -36,7 +42,7 @@ async def reset():
 
 @app.post("/step")
 async def step(action: Dict[str, Any]):
-    return {"observation": {"disk_usage_percent": 45.0}, "reward": 0.0, "done": False, "info": {}}
+    return {"observation": {"disk_usage_percent": 45.0, "services_status": "normal"}, "reward": 0.0, "done": False, "info": {}}
 
 @app.get("/state")
 async def get_state():
