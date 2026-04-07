@@ -2,10 +2,8 @@ import os
 import sys
 import asyncio
 from typing import List, Optional
-from openai import OpenAI  # MANDATORY for hackathon rules
+from openai import OpenAI  
 
-# --- PATH BOOTSTRAP ---
-# Prevents "ModuleNotFoundError: No module named 'src'"
 current_dir = os.path.dirname(os.path.abspath(__file__))
 if current_dir not in sys.path:
     sys.path.append(current_dir)
@@ -13,12 +11,10 @@ if current_dir not in sys.path:
 from src.environment import IncidentEnv
 from src.models import Action
 
-# --- MANDATORY VARIABLES EXACTLY AS CHECKLIST REQUIRES ---
 API_BASE_URL = os.getenv("API_BASE_URL", "https://router.huggingface.co/v1")
 MODEL_NAME = os.getenv("MODEL_NAME", "Qwen/Qwen2.5-72B-Instruct")
 HF_TOKEN = os.getenv("HF_TOKEN")  # No default allowed per checklist!
 
-# Optional - per checklist
 LOCAL_IMAGE_NAME = os.getenv("LOCAL_IMAGE_NAME")
 TASK_NAME = os.getenv("TASK_ID", "cascading_failure_hard")
 
@@ -39,12 +35,10 @@ def log_end(success: bool, steps: int, score: float, rewards: List[float]):
 
 class LLMAgent:
     def __init__(self):
-        # Initialize the OpenAI client as required by the rules
         self.client = OpenAI(base_url=API_BASE_URL, api_key=HF_TOKEN or "dummy-key")
         self.history: List[str] = []
 
     def select_action(self, obs) -> Action:
-        # Smart Prompt that handles all edge cases and targets the end goal
         prompt = f"""
         You are an SRE agent. 
         Your GOAL to complete the task: Disk usage must be safely under 90%, AND all services must be 'running'.
@@ -64,7 +58,6 @@ class LLMAgent:
         CRITICAL: Output ONLY a SINGLE command on a SINGLE line. No quotes, no markdown, no multiple commands.
         """
         try:
-            # Mandatory LLM Call
             response = self.client.chat.completions.create(
                 model=MODEL_NAME,
                 messages=[{"role": "user", "content": prompt}],
@@ -72,11 +65,9 @@ class LLMAgent:
                 max_tokens=30
             )
             
-            # Get response and FORCE it to be a single line to prevent parsing crashes
             raw_text = response.choices[0].message.content.strip()
             text = raw_text.splitlines()[0].strip()
             
-            # Parse the LLM output into our Action model
             parts = text.split(" ", 1)
             cmd = parts[0]
             args = parts[1] if len(parts) > 1 else ""
@@ -84,7 +75,6 @@ class LLMAgent:
             
         except Exception as e:
             print(f"[DEBUG] LLM Call Failed: {e}. Falling back to safe action.", flush=True)
-            # Fallback action if the API key isn't set during automated testing
             return Action(command="df", args="-h")
 
 async def main():
@@ -117,7 +107,6 @@ async def main():
             if done:
                 break
 
-        # Calculate final metrics
         score = max(0.0, min(1.0, sum(rewards)))
         success = score >= SUCCESS_THRESHOLD
 

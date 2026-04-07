@@ -13,7 +13,6 @@ class IncidentEnv:
 
     async def reset(self, task_id: str = "disk_full_easy") -> Observation:
         self.current_task_id = task_id
-        # Use deepcopy so we don't accidentally mutate the base tasks dictionary
         self.state_data = copy.deepcopy(TASKS[task_id]["initial_state"])
         self.steps = 0
         return self._get_obs()
@@ -30,17 +29,15 @@ class IncidentEnv:
 
     async def step(self, action: Action) -> Tuple[Observation, float, bool, dict]:
         self.steps += 1
-        reward_val = -0.01  # Small step penalty to encourage efficiency
+        reward_val = -0.01  
         
         cmd = action.command.lower()
         arg = action.args.strip()
         
-        # Reset output states for the new turn
         self.state_data["last_stdout"] = ""
         self.state_data["last_stderr"] = ""
         self.state_data["last_exit_code"] = 0
 
-        # Command Logic Simulation
         if cmd == "df":
             self.state_data["last_stdout"] = f"Filesystem Use%\n/dev/sda1 {self.state_data['disk_usage']}%"
             
@@ -80,13 +77,11 @@ class IncidentEnv:
             self.state_data["last_exit_code"] = 127
             reward_val -= 0.1
 
-        # Check if task is completed
         all_services_running = all(status == "running" for status in self.state_data["services"].values())
         disk_ok = self.state_data["disk_usage"] < 90
         
         done = self.steps >= self.max_steps or (all_services_running and disk_ok)
         
-        # Give a bonus if completed successfully
         if done and all_services_running and disk_ok:
             reward_val += 0.5
 

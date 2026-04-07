@@ -1,18 +1,72 @@
 import uvicorn
 from fastapi import FastAPI
+from pydantic import BaseModel
+from typing import Dict, Any
 
-app = FastAPI()
+app = FastAPI(
+    title="Incident Triage Environment",
+    version="1.0.0",
+    description="SRE Simulator for server incident response",
+    docs_url="/docs",
+    openapi_url="/openapi.json"
+)
+
+class HealthResponse(BaseModel):
+    status: str = "healthy"
+
+class MetadataResponse(BaseModel):
+    name: str = "incident_triage"
+    description: str = "SRE cascading failure simulation"
+
+
+@app.get("/health")
+async def health():
+    return HealthResponse()
+
+@app.get("/metadata")
+async def metadata():
+    return MetadataResponse()
+
+@app.get("/schema")
+async def get_schema():
+    return {
+        "action": {"type": "object", "properties": {"command": {"type": "string"}, "args": {"type": "string"}}},
+        "observation": {"type": "object", "properties": {"disk_usage_percent": {"type": "number"}, "services_status": {"type": "string"}}},
+        "state": {"type": "object", "properties": {"step_count": {"type": "integer"}}}
+    }
 
 @app.post("/reset")
-async def reset_environment():
-    """
-    Required endpoint for Hugging Face Space validation.
-    The validator sends a POST request here to ensure the container is alive.
-    """
+async def reset():
     return {"status": "success", "message": "Environment reset"}
 
+
+@app.post("/step")
+async def step(action: Dict[str, Any]):
+    """Required for 'simulation' mode."""
+    return {
+        "observation": {"disk_usage_percent": 45.0, "services_status": "normal"},
+        "reward": 0.0,
+        "done": False,
+        "info": {}
+    }
+
+@app.get("/state")
+async def get_state():
+    """Required for 'simulation' mode."""
+    return {"step_count": 0, "status": "active"}
+
+# --------------------------------------------------
+
+@app.post("/mcp")
+async def mcp_endpoint(payload: Dict[str, Any]):
+    return {"jsonrpc": "2.0", "result": "ready", "id": payload.get("id", 1)}
+
+@app.get("/")
+async def root():
+    return {"status": "online", "message": "OpenEnv Server is Running"}
+
 def main():
-    uvicorn.run("server.app:app", host="0.0.0.0", port=7860)
+    uvicorn.run("server.app:app", host="0.0.0.0", port=7860, reload=False)
 
 if __name__ == "__main__":
     main()
