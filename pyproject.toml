@@ -5,10 +5,6 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "incident-triage-env"
 version = "1.0.0"
-description = "SRE Incident Triage Simulator using OpenEnv"
-readme = "README.md"
-requires-python = ">=3.10"
-
 dependencies = [
     "pydantic>=2.0.0",
     "openai>=1.0.0",
@@ -19,5 +15,4 @@ dependencies = [
 ]
 
 [project.scripts]
-# Fixed to point to the server folder
 server = "server.app:main"
