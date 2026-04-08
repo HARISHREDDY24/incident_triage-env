@@ -6,7 +6,8 @@ TASKS = {
             "system_load": 0.5,
             "services": {"nginx": "running"},
             "last_stdout": "", "last_stderr": "", "last_exit_code": 0
-        }
+        },
+        "grader": "src.graders:grade_incident"
     },
     "service_crash_medium": {
         "description": "Nginx has crashed. Diagnose and restart.",
@@ -15,7 +16,8 @@ TASKS = {
             "system_load": 0.1,
             "services": {"nginx": "stopped"},
             "last_stdout": "", "last_stderr": "", "last_exit_code": 0
-        }
+        },
+        "grader": "src.graders:grade_incident"
     },
     "cascading_failure_hard": {
         "description": "Disk full caused DB crash. Clear logs AND restart DB.",
@@ -24,6 +26,7 @@ TASKS = {
             "system_load": 2.5,
             "services": {"postgres": "stopped", "app": "error"},
             "last_stdout": "", "last_stderr": "", "last_exit_code": 0
-        }
+        },
+        "grader": "src.graders:grade_incident"
     }
 }

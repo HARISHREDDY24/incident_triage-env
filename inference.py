@@ -71,22 +71,17 @@ async def run():
                 action_str = f"{action.command} {action.args}".strip()
                 obs, reward, done, _ = await env.step(action)
                 
-                # GRADER FIX: Ensure reward isn't a flat 0 or 1
-                # Adding a tiny bit of random jitter so the grader sees 'range'
-                adjusted_reward = reward * 0.95 + (random.uniform(0.01, 0.04))
-                rewards.append(adjusted_reward)
-
-                print(f"[STEP] step={step} action={action_str} reward={adjusted_reward:.2f} done={str(done).lower()} error=null", flush=True)
+                rewards.append(reward)
+                
+                print(f"[STEP] step={step} action={action_str} reward={reward:.2f} done={str(done).lower()} error=null", flush=True)
                 if done: break
             except:
                 break
 
         # -------------------------------
-        # FINAL SCORE FIX (STRICT RANGE)
+        # FINAL SCORE EXTRACTION
         # -------------------------------
-        # Validator requires score > 0.0 and < 1.0
-        total_sum = sum(rewards)
-        final_score = max(0.150, min(0.985, total_sum / steps_taken if steps_taken > 0 else 0.5))
+        final_score = rewards[-1] if rewards else 0.5
         
         # Format the rewards string
         rewards_str = ",".join(f"{r:.2f}" for r in rewards)

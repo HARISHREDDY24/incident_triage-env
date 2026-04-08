@@ -3,6 +3,7 @@ import copy
 from typing import Dict, Any, Tuple
 from .models import Action, Observation
 from .tasks import TASKS
+from .graders import grade_incident
 
 class IncidentEnv:
     def __init__(self):
@@ -78,12 +79,11 @@ class IncidentEnv:
             reward_val -= 0.1
 
         all_services_running = all(status == "running" for status in self.state_data["services"].values())
-        disk_ok = self.state_data["disk_usage"] < 90
+        disk_ok = self.state_data["disk_usage"] < 80
         
         done = self.steps >= self.max_steps or (all_services_running and disk_ok)
         
-        if done and all_services_running and disk_ok:
-            reward_val += 0.5
+        reward_val = grade_incident(self.state_data)
 
         obs = self._get_obs()
         return obs, reward_val, done, {}

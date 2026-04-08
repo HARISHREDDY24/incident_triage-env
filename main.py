@@ -1,8 +1,8 @@
 from fastapi import FastAPI
-from src.environment import AgriMarketEnv
+from src.environment import IncidentEnv
 
 app = FastAPI()
-env = AgriMarketEnv()
+env = IncidentEnv()
 
 
 @app.post("/reset")

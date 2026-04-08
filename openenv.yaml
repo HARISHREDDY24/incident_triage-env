@@ -5,7 +5,10 @@ entry_point: "src.environment:IncidentEnv"
 tasks:
   - id: disk_full_easy
     difficulty: easy
+    grader: "src.graders:grade_incident"
   - id: service_crash_medium
     difficulty: medium
+    grader: "src.graders:grade_incident"
   - id: cascading_failure_hard
     difficulty: hard
+    grader: "src.graders:grade_incident"
