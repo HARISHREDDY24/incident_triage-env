@@ -83,7 +83,7 @@ class IncidentEnv:
         
         done = self.steps >= self.max_steps or (all_services_running and disk_ok)
         
-        reward_val = grade_incident(self.state_data)
+        reward_val = reward_val + grade_incident(self.state_data)
 
         obs = self._get_obs()
         return obs, reward_val, done, {}
